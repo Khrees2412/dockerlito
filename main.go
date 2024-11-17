@@ -29,8 +29,7 @@ func run() {
 	cmd.Stderr = os.Stderr
 
 	cmd.SysProcAttr = &syscall.SysProcAttr{
-		Cloneflags: syscall.CLONE_NEWUTS | syscall.CLONE_NEWPID | syscall.CLONE_NEWNS,
-		// UidMappings: ,
+		Cloneflags:   syscall.CLONE_NEWUTS | syscall.CLONE_NEWPID | syscall.CLONE_NEWNS,
 		Unshareflags: syscall.CLONE_NEWNS,
 	}
 	cmd.Run()
@@ -57,7 +56,7 @@ func child() {
 // docker run image <cmd> <params>
 // go run main.go run  <cmd> <params>
 
-// limit what a process can see
+// limit what a process can use
 func cgroup() {
 	cgroups := "/sys/fs/cgroup"
 	cgroupPath := filepath.Join(cgroups, "chris")
@@ -67,13 +66,10 @@ func cgroup() {
 		panic(err)
 	}
 
-	// Enable the pids controller
 	must(os.WriteFile(filepath.Join(cgroups, "cgroup.subtree_control"), []byte("+pids"), 0700))
 
-	// Set the pids limit (equivalent to pids.max)
 	must(os.WriteFile(filepath.Join(cgroupPath, "pids.max"), []byte("20"), 0700))
 
-	// Add the current process to the cgroup (cgroup.procs replaces group.procs)
 	must(os.WriteFile(filepath.Join(cgroupPath, "cgroup.procs"), []byte(strconv.Itoa(os.Getpid())), 0700))
 }
 
